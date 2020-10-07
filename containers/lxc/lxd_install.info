@@ -1,0 +1,95 @@
+Links:
+  Setting up Systemd-Networkd: https://wiki.debian.org/SystemdNetworkd
+  LXD, Network configuration: https://github.com/lxc/lxd/blob/master/doc/networks.md
+  LXD/LXC, Articles:
+    - http://vasilisc.com/network-management-lxd-2-3
+    - http://vasilisc.com/lxc-1-0-blog-post-series
+    - http://vasilisc.com/lxd-2-0-series
+    - https://stgraber.org/category/lxc/
+  Installing snap on Debian: https://snapcraft.io/docs/installing-snap-on-debian
+
+#### Step 1 
+If the system running LXD uses systemd-resolved to perform DNS lookups,
+it's possible to integrate LXD with systemd-resolved
+
+Configure OS network:
+  - move (backup) the /etc/network/interfaces file to another name
+  - configure: systemd-networkd
+  - configure: systemd-resolved
+
+## Step 1.1: Configuring the systemd-networkd service
+
+# Backup the interfaces file
+mv /etc/network/interfaces /etc/network/interfaces.backup
+
+# Disable and stop networking service
+systemctl disable networking.service
+systemctl stop networking.service
+
+# Enable systemd-networkd and systemd-networkd-wait-online services
+systemctl enable systemd-networkd
+systemctl enable systemd-networkd-wait-online
+
+# Create systemd-networkd interfaces config file
+# -rw-r--r-- 1 root root
+cp config/lan.network /etc/systemd/network/
+
+# Start systemd-networkdvservice
+# NOTE: If you are doing this remotely, you can lose your connection (new IP from DHCP).
+systemctl start systemd-networkd.service
+journalctl -u systemd-networkd.service
+
+## Step 1.2: Configuring the systemd-resolved service
+systemctl enable systemd-resolved.service
+systemctl start systemd-resolved.service
+# Replacing /etc/resolv.conf with a symbolic link to the systemd stub file managed by systemd-resolved
+ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+
+# Lookup DNS name
+resolvectl query yandex.ru
+resolvectl status
+
+#### Step 2
+Install snaps (snapd) on Debian and install LXD
+
+# Getting the snapd onto the Debian
+apt-get install snapd
+snap install core
+systemctl status snapd.socket
+
+# Install LXD to system
+snap install lxd
+usermod -aG lxd uav
+
+# Relogin to system and run init
+lxd init
+
+#### Step 3
+Integration LXC with systemd-resolved (DNS Lookup)
+
+# Copy script and systemd service files to system
+# -rwxr-xr-x  1 root root
+cp ./config/lxdbr0_dns.sh /usr/local/bin
+# -rw-r--r-- 1 root root
+cp ./config/lxd-dns.service /lib/systemd/system
+
+# Enable and run service
+systemctl enable lxd-dns.service
+systemctl start lxd-dns.service
+journalctl -u lxd-dns.service
+
+# Check that the lxdbr0 interface has "DNS Domain" (~lxd) and "DNS Servers" values
+resolvectl
+
+
+#### Step 4
+Post-install configuration
+
+# Configure profile with cloud-init
+lxc profile copy default profile_01
+lxc profile set profile_01 user.user-data - < ./config/cloud-init.yml
+
+# Try to run containers using new LXC profile
+lxc launch images:centos/8/cloud centos-srv01 -p profile_01
+lxc launch ubuntu: ubuntu-srv01 -p profile_01
+lxc launch images:debian/11/cloud debian-srv01 -p profile_01

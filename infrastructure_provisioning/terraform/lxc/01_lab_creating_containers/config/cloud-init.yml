@@ -1,0 +1,39 @@
+#cloud-config
+# https://cloudinit.readthedocs.io/en/latest/topics/examples.html
+
+# Add users to the system. Users are added after groups are added.
+users:
+  - name: uav
+    #lock_passwd: Defaults to true. Lock the password to disable password login
+    lock_passwd: false
+    # openssl passwd -6 -salt Salt P@ssw0rd
+    passwd: $6$Salt$NJCx1.QumMircrQJbLk0Npy4DhGhjLVCFjj094tF2j6yLb7SK01GJTLLIxIc3WBpuSqmvb3ndMwtcuMqpEpfL1
+    gecos: Udovichenko A.
+    primary_group: uav
+    groups: [adm, uav, sudo]
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC0PFj/zENg+9VkCDIEdBUIYZ+ANg2BOF+jwfhaFrXjJ6ym0d34FpIciT+nAlI+fmdf4zPsIXzSbGMmE6JF11p/enIJmXWhLnYUnEgYhF96XC/xjDNAOEz5LmzGN0UTSVsa9zY9sj8gxUsF9jIpPHS3aXxMWrPLshc7/RvJe0jjdGOaOYBJFs+MfB0wJGosSXf8OFKn53d4u9tITNboXQQDGDmPbatZXdyRUY6QAGQkBrf3Q9sfu6PgZwtjx360Xwr7gAfdBwQuX5+PcxXdW5g7xcESobf805EQnA6EIxNjF7aRoNP9RcMnQDBPH7itoQx+UYRaEtNlRdUerbyTFFyJ uav@docker-server
+
+
+# Update apt database on first boot (run 'apt-get update').
+package_update: true
+# Upgrade the instance on first boot
+package_upgrade: true
+
+# Install additional packages on first boot
+packages:
+  - sudo
+  - openssh-server
+  - bash-completion
+  - nano
+  - tree
+  - python3
+
+# Reboot when finished
+power_state:
+  delay: "now"
+  mode: reboot
+  timeout: 30
+  condition: True

@@ -1,0 +1,11 @@
+[Match]
+Name=eth*
+
+[Network]
+DHCP=yes
+# Enable IP forwarding (need for containers)
+IPForward=true
+
+[DHCP]
+# Get domain (domain/search) from DHCP
+UseDomains=yes

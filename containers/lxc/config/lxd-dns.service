@@ -1,0 +1,13 @@
+[Unit]
+Description=LXD DNS resolving config service
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/lxdbr0_dns.sh up
+RemainAfterExit=true
+ExecStop=/usr/local/bin/lxdbr0_dns.sh down
+StandardOutput=journal
+
+[Install]
+WantedBy=multi-user.target
