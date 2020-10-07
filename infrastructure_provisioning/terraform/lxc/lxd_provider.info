@@ -1,0 +1,35 @@
+Links:
+  - terraform-provider-lxd: https://github.com/sl1pm4t/terraform-provider-lxd
+
+# NOTE: Ensure that lxd is allowing remote connections
+lxc config set core.https_address "[::]"
+lxc config set core.trust_password P@ssw0rd
+
+# Installation manual
+Install terraform
+
+# Create plugin folder for a LXD terraform provider
+mkdir -p ~/.terraform.d/plugins/local/community/lxd/1.3.0/linux_amd64/
+cd ~/.terraform.d/plugins/local/community/lxd/1.3.0/linux_amd64/
+
+# Download the binary from the LXD provider project releases page
+wget https://github.com/sl1pm4t/terraform-provider-lxd/releases/download/v1.3.0/terraform-provider-lxd_v1.3.0_linux_amd64.zip
+
+# Extract provider binary from tar file.
+unzip terraform-provider-lxd_v1.3.0_linux_amd64.zip
+rm terraform-provider-lxd_v1.3.0_linux_amd64.zip
+
+# Create a terraform project directory and configure the LXD provider in the versions.tf file:
+
+terraform {
+  required_providers {
+    lxd = {
+      source = "local/community/lxd"
+    }
+  }
+  required_version = ">= 0.13"
+}
+
+
+# Init you project
+terraform init

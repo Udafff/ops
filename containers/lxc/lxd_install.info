@@ -93,3 +93,8 @@ lxc profile set profile_01 user.user-data - < ./config/cloud-init.yml
 lxc launch images:centos/8/cloud centos-srv01 -p profile_01
 lxc launch ubuntu: ubuntu-srv01 -p profile_01
 lxc launch images:debian/11/cloud debian-srv01 -p profile_01
+
+# If you want to manage LXC via network. For instance using terraform provider
+# Enable remote connections and set password
+lxc config set core.https_address "[::]"
+lxc config set core.trust_password P@ssw0rd
